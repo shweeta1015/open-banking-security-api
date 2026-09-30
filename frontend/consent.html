@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Consent Authorization - OpenBankingSecurity</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #1e293b 0%, #0b0f19 100%);
+            padding: 20px;
+        }
+        .consent-card {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 580px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .partner-banner {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #93c5fd;
+        }
+        .account-item, .scope-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1e293b;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #334155;
+            cursor: pointer;
+        }
+        .account-item input, .scope-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+        .quick-fill-btn {
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #93c5fd;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .quick-fill-btn:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body>
+
+<div class="consent-card">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="font-size:28px;">🔐</div>
+        <div>
+            <h2 style="font-size:1.3rem; color:#fff;">Delegated Customer Consent</h2>
+            <p style="font-size:0.8rem; color:#9ca3af;">Open Banking OAuth 2.0 Authorization Server</p>
+        </div>
+    </div>
+
+    <div class="partner-banner">
+        <strong>Third-Party Partner:</strong> <span id="partnerName">Demo Fintech Analytics Ltd</span><br>
+        <span style="font-size:0.75rem; color:#cbd5e1;">Client ID: <code id="clientIdDisplay">fintech_partner_demo</code></span>
+    </div>
+
+    <form id="consentForm">
+        <!-- Customer Login Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="margin:0;">Bank Customer Authentication</label>
+                <div>
+                    <span style="font-size:0.75rem; color:#9ca3af; margin-right:4px;">Quick Fill:</span>
+                    <button type="button" class="quick-fill-btn" onclick="fillCustomer('alice', 'AliceSecurePass2026!')">Alice</button>
+                    <button type="button" class="quick-fill-btn" onclick="fillCustomer('bob', 'BobSecurePass2026!')">Bob</button>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div>
+                    <input type="text" id="username" placeholder="Username (e.g. alice)" required>
+                </div>
+                <div>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Selection Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="margin:0;">Select Accounts to Share</label>
+                <button type="button" class="quick-fill-btn" onclick="loadCustomerAccounts()">Load Accounts</button>
+            </div>
+            <div id="accountsContainer">
+                <div style="font-size:0.8rem; color:#9ca3af; padding:8px; text-align:center; background:#1e293b; border-radius:6px;">
+                    Click "Load Accounts" or select quick-fill customer above.
+                </div>
+            </div>
+        </div>
+
+        <!-- Scope Selection Section -->
+        <div style="margin-bottom: 24px;">
+            <label style="margin-bottom:8px;">Permissions / Scopes Requested</label>
+            <div class="scope-item">
+                <input type="checkbox" id="scope_accounts" value="accounts:read" checked>
+                <div>
+                    <div style="font-size:0.85rem; font-weight:600; color:#fff;">accounts:read</div>
+                    <div style="font-size:0.75rem; color:#9ca3af;">View account numbers, types, and status (excludes balances)</div>
+                </div>
+            </div>
+            <div class="scope-item">
+                <input type="checkbox" id="scope_balances" value="balances:read" checked>
+                <div>
+                    <div style="font-size:0.85rem; font-weight:600; color:#fff;">balances:read</div>
+                    <div style="font-size:0.75rem; color:#9ca3af;">View live account balances</div>
+                </div>
+            </div>
+            <div class="scope-item">
+                <input type="checkbox" id="scope_txs" value="transactions:read" checked>
+                <div>
+                    <div style="font-size:0.85rem; font-weight:600; color:#fff;">transactions:read</div>
+                    <div style="font-size:0.75rem; color:#9ca3af;">View transaction history and counterparties</div>
+                </div>
+            </div>
+            <div class="scope-item">
+                <input type="checkbox" id="scope_payments" value="payments:write">
+                <div>
+                    <div style="font-size:0.85rem; font-weight:600; color:#f87171;">payments:write (High Privilege)</div>
+                    <div style="font-size:0.75rem; color:#9ca3af;">Initiate simulated outbound financial transfers</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="consentError" style="display:none; color:#f87171; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:10px; font-size:0.85rem; margin-bottom:16px;"></div>
+
+        <div style="display:flex; gap:12px;">
+            <button type="submit" class="btn btn-success" style="flex:2; justify-content:center;">Approve & Grant Access</button>
+            <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="window.location.href='/dashboard'">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('client_id') || 'fintech_partner_demo';
+    const redirectUri = urlParams.get('redirect_uri') || window.location.origin + '/oauth/callback';
+    const state = urlParams.get('state') || 'sim_state_' + Math.random().toString(36).substring(7);
+    const codeChallenge = urlParams.get('code_challenge') || '';
+    const codeChallengeMethod = urlParams.get('code_challenge_method') || 'S256';
+
+    document.getElementById('clientIdDisplay').innerText = clientId;
+
+    let demoCustomersData = [];
+
+    async function fetchDemoCustomers() {
+        try {
+            const resp = await fetch('/oauth/demo-customers');
+            demoCustomersData = await resp.json();
+            // Default to first customer (alice)
+            fillCustomer('alice', 'AliceSecurePass2026!');
+        } catch (e) {
+            console.error("Failed to load demo customers:", e);
+        }
+    }
+
+    function fillCustomer(username, password) {
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = password;
+        loadCustomerAccounts();
+    }
+
+    function loadCustomerAccounts() {
+        const username = document.getElementById('username').value.trim();
+        const customer = demoCustomersData.find(c => c.username === username);
+        const container = document.getElementById('accountsContainer');
+
+        if (!customer) {
+            container.innerHTML = `<div style="font-size:0.8rem; color:#f87171; padding:8px;">Customer '${username}' not found in demo records.</div>`;
+            return;
+        }
+
+        container.innerHTML = customer.accounts.map(acc => `
+            <div class="account-item">
+                <input type="checkbox" name="account" value="${acc.account_id}" checked>
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:0.85rem; font-weight:600; color:#fff;">${acc.account_type} (${acc.account_number_masked})</span>
+                        <span style="font-size:0.85rem; color:#34d399; font-weight:600;">$${acc.balance.toLocaleString()} ${acc.currency}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#9ca3af;">ID: <code>${acc.account_id}</code></div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('consentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errDiv = document.getElementById('consentError');
+        errDiv.style.display = 'none';
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        // Selected accounts
+        const selectedAccounts = Array.from(document.querySelectorAll('input[name="account"]:checked')).map(cb => cb.value);
+        if (selectedAccounts.length === 0) {
+            errDiv.innerText = "Please select at least one account to grant consent for.";
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        // Selected scopes
+        const scopes = [];
+        if (document.getElementById('scope_accounts').checked) scopes.push('accounts:read');
+        if (document.getElementById('scope_balances').checked) scopes.push('balances:read');
+        if (document.getElementById('scope_txs').checked) scopes.push('transactions:read');
+        if (document.getElementById('scope_payments').checked) scopes.push('payments:write');
+
+        const payload = {
+            client_id: clientId,
+            username: username,
+            password: password,
+            redirect_uri: redirectUri,
+            state: state,
+            code_challenge: codeChallenge,
+            code_challenge_method: codeChallengeMethod,
+            scopes: scopes,
+            allowed_account_ids: selectedAccounts
+        };
+
+        try {
+            const resp = await fetch('/oauth/consent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+            if (!resp.ok) {
+                errDiv.innerText = data.detail?.error_description || data.detail?.error || "Consent submission failed.";
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            // Save authorization code in session for dashboard convenience
+            sessionStorage.setItem('last_auth_code', data.code);
+            sessionStorage.setItem('last_auth_state', data.state);
+            sessionStorage.setItem('last_customer_username', username);
+
+            // Redirect back to client callback
+            window.location.href = data.redirect_url;
+        } catch (err) {
+            errDiv.innerText = "Network error: " + err.message;
+            errDiv.style.display = 'block';
+        }
+    });
+
+    // Initialize
+    fetchDemoCustomers();
+</script>
+
+</body>
+</html>

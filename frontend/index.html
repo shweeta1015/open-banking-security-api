@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenBankingSecurityAPI - Local API Security Simulator</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+<!-- Navigation Header -->
+<header class="navbar">
+    <div class="brand">
+        <div class="brand-icon">🛡️</div>
+        <div class="brand-text">
+            <h1>OpenBankingSecurityAPI</h1>
+            <span class="brand-badge">Educational Simulator • OWASP Top 5 & OAuth 2.0 PKCE</span>
+        </div>
+    </div>
+    <div class="header-status">
+        <span style="font-size:0.8rem; color:var(--text-secondary);">Backend Status:</span>
+        <span id="healthStatus" class="status-pill status-active">ONLINE</span>
+        <a href="/.well-known/jwks.json" target="_blank" class="btn btn-secondary btn-sm" title="View RFC 7517 Public Key Set">View JWKS 🔑</a>
+    </div>
+</header>
+
+<div class="container">
+    <!-- Tab Navigation -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" data-target="overview-tab">Architecture & Overview</button>
+        <button class="tab-btn" data-target="partner-tab">Partner & API Keys</button>
+        <button class="tab-btn" data-target="oauth-tab">OAuth 2.0 PKCE & JWT</button>
+        <button class="tab-btn" data-target="banking-tab">Live Banking Explorer</button>
+        <button class="tab-btn" data-target="owasp-tab">OWASP Attack Playground ⚡</button>
+        <button class="tab-btn" data-target="audit-tab">Security Audit Logs 📜</button>
+    </nav>
+
+    <!-- Tab 1: Architecture & Overview -->
+    <div id="overview-tab" class="tab-content active">
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <div class="card-title">🏛️ Open Banking Security Pipeline Architecture</div>
+                <span class="status-pill status-active">Dummy Data Only</span>
+            </div>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:18px;">
+                This simulator demonstrates the security controls required when fintech applications access customer bank data under Open Banking regulations (such as UK Open Banking / PSD2 / FDX). It implements defense-in-depth across authentication, delegated user authorization, data minimization, and replay prevention.
+            </p>
+
+            <div class="arch-diagram">
+                <div class="arch-node">
+                    <span class="node-badge">1. Identity</span>
+                    <h4>Fintech Partner</h4>
+                    <p>Issues hashed API key (<code>ob_live_...</code>). Enforces partner identification & sliding window rate limits.</p>
+                </div>
+                <div class="arch-node">
+                    <span class="node-badge">2. Delegated Auth</span>
+                    <h4>OAuth 2.0 + PKCE</h4>
+                    <p>Authorization Code + S256 PKCE with explicit customer consent screen. Never treats API key as user consent.</p>
+                </div>
+                <div class="arch-node">
+                    <span class="node-badge">3. Cryptography</span>
+                    <h4>RS256 JWT & JWKS</h4>
+                    <p>Asymmetric RSA 2048-bit signing. Zero-DB token verification using cached public key from JWKS.</p>
+                </div>
+                <div class="arch-node">
+                    <span class="node-badge">4. Resource Server</span>
+                    <h4>OWASP Protections</h4>
+                    <p>BOLA (API1) object validation, Data Minimization (API3), Scope RBAC (API5), and DPoP Replay defense.</p>
+                </div>
+                <div class="arch-node">
+                    <span class="node-badge">5. Compliance</span>
+                    <h4>Sanitized Audit</h4>
+                    <p>Structured audit log recording auth failures, consent decisions, and attacks without leaking secrets.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">🎯 Demo Credentials (Seeded)</div>
+                <table style="width:100%; font-size:0.85rem; margin-top:12px; border-collapse:collapse;">
+                    <thead>
+                        <tr style="color:var(--text-secondary); text-align:left; border-bottom:1px solid var(--border);">
+                            <th style="padding:6px;">Role</th>
+                            <th style="padding:6px;">Username / ID</th>
+                            <th style="padding:6px;">Password / Key</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <td style="padding:8px 6px;">Partner</td>
+                            <td><code>fintech_partner_demo</code></td>
+                            <td><code>ob_live_demo1234_...</code></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <td style="padding:8px 6px;">Customer</td>
+                            <td><code>alice</code></td>
+                            <td><code>AliceSecurePass2026!</code></td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 6px;">Customer</td>
+                            <td><code>bob</code></td>
+                            <td><code>BobSecurePass2026!</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎓 College Presentation Quick Start</div>
+                <ol style="margin-left:20px; font-size:0.85rem; color:var(--text-secondary); line-height:1.8; margin-top:10px;">
+                    <li><strong>Step 1:</strong> Inspect partner credentials on the <em>Partner & API Keys</em> tab.</li>
+                    <li><strong>Step 2:</strong> Launch PKCE flow on <em>OAuth 2.0 PKCE</em> tab and complete Alice's consent.</li>
+                    <li><strong>Step 3:</strong> Inspect the issued RS256 JWT claims and public JWKS format.</li>
+                    <li><strong>Step 4:</strong> Browse authorized banking endpoints on <em>Live Banking Explorer</em>.</li>
+                    <li><strong>Step 5:</strong> Jump to <em>OWASP Attack Playground</em> to test 1-click BOLA, Tampering, and Replay blocks!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Partner & API Keys -->
+    <div id="partner-tab" class="tab-content">
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🔑 Partner API Key Credentials</div>
+                    <span id="partnerStatusPill" class="status-pill status-active">ACTIVE</span>
+                </div>
+                <div class="form-group">
+                    <label>Demo Partner Client ID</label>
+                    <input type="text" id="partnerClientIdDisplay" value="fintech_partner_demo" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Simulated Partner API Key (X-API-Key Header)</label>
+                    <input type="text" id="partnerApiKeyInput" value="ob_live_demo1234_supersecretpartnerkey987654321">
+                    <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:4px;">
+                        Only the prefix and Argon2 hash are stored in the database. Never transmit in URLs or commit to client repos.
+                    </span>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button class="btn" onclick="refreshPartnerProfile()">Verify Profile (GET /partners/me)</button>
+                    <button class="btn btn-warning" onclick="rotatePartnerKey()">Rotate Key 🔄</button>
+                    <button class="btn btn-danger" onclick="revokePartner()">Revoke Partner 🚫</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📡 Partner API Response</div>
+                <div id="partnerProfileOutput" class="code-block">Click 'Verify Profile' to query partner status...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: OAuth 2.0 PKCE & JWT -->
+    <div id="oauth-tab" class="tab-content">
+        <div class="grid-2">
+            <!-- Left: PKCE & Flow Steps -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🛡️ Step 1 & 2: PKCE & User Consent Flow</div>
+                    <button class="btn btn-secondary btn-sm" onclick="regeneratePkce()">Regenerate PKCE</button>
+                </div>
+                <div class="form-group">
+                    <label>PKCE Code Verifier (RFC 7636 Random String)</label>
+                    <input type="text" id="pkceVerifier" readonly>
+                </div>
+                <div class="form-group">
+                    <label>PKCE Code Challenge (Base64URL SHA-256 of Verifier)</label>
+                    <input type="text" id="pkceChallenge" readonly>
+                </div>
+                <div class="form-group">
+                    <label>OAuth 2.0 CSRF State Token</label>
+                    <input type="text" id="oauthState" readonly>
+                </div>
+                <button class="btn btn-success" style="width:100%; margin-top:8px;" onclick="startConsentFlow()">
+                    🚀 Launch Customer Consent Screen (/consent)
+                </button>
+
+                <hr style="border:0; border-top:1px solid var(--border); margin:20px 0;">
+
+                <div class="card-title" style="margin-bottom:12px;">Step 3: Exchange Authorization Code for Token</div>
+                <div class="form-group">
+                    <label>Authorization Code Received</label>
+                    <input type="text" id="authCodeInput" placeholder="authcode_...">
+                </div>
+                <button class="btn" style="width:100%;" onclick="exchangeAuthCode()">
+                    Exchange Code + PKCE Verifier for RS256 JWT
+                </button>
+            </div>
+
+            <!-- Right: JWT Claims & Public JWKS -->
+            <div class="card">
+                <div class="card-title">📜 Step 4: RS256 JWT Access Token Inspector</div>
+                <div class="form-group" style="margin-top:12px;">
+                    <label>Active Bearer Token</label>
+                    <textarea id="activeTokenInput" rows="3" placeholder="RS256 JWT will appear here after code exchange..."></textarea>
+                </div>
+
+                <div style="font-size:0.85rem; font-weight:600; margin-top:14px; margin-bottom:6px; color:#fff;">Decoded Standard Claims:</div>
+                <div id="jwtClaimsContainer">
+                    <div style="color:var(--text-muted); font-size:0.8rem;">No token decoded yet. Complete the consent flow above.</div>
+                </div>
+
+                <div style="font-size:0.85rem; font-weight:600; margin-top:16px; margin-bottom:6px; color:#fff;">RFC 7517 Public JWKS (Zero-DB Verification Key):</div>
+                <div id="jwksViewer" class="code-block" style="max-height:160px;">Loading public JWKS...</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <div class="card-title">📦 Token Endpoint Raw Response</div>
+            <div id="tokenExchangeOutput" class="code-block">Token exchange response will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Live Banking Explorer -->
+    <div id="banking-tab" class="tab-content">
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">🏦 Query Consented Banking Resources</div>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:14px;">
+                    The Open Banking API validates that the bearer token is cryptographically signed, valid, not expired, and contains the required scope.
+                </p>
+
+                <div class="form-group">
+                    <label>Target Account ID</label>
+                    <select id="explorerAccountId">
+                        <option value="acc_alice_chk_01">acc_alice_chk_01 (Alice Checking - $12,450.00)</option>
+                        <option value="acc_alice_sav_02">acc_alice_sav_02 (Alice Savings - $45,200.00)</option>
+                        <option value="acc_bob_chk_01">acc_bob_chk_01 (Bob Checking - $3,120.50)</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
+                    <button class="btn" onclick="callBankingApi('accounts')">
+                        1. GET /api/v1/accounts (Scope: accounts:read)
+                    </button>
+                    <button class="btn" onclick="callBankingApi('detail')">
+                        2. GET /api/v1/accounts/{id} (Scope: accounts:read)
+                    </button>
+                    <button class="btn" onclick="callBankingApi('balances')">
+                        3. GET /api/v1/accounts/{id}/balances (Scope: balances:read)
+                    </button>
+                    <button class="btn" onclick="callBankingApi('transactions')">
+                        4. GET /api/v1/accounts/{id}/transactions (Scope: transactions:read)
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🖥️ API Explorer Output</div>
+                <div id="apiExplorerOutput" class="code-block" style="min-height:280px;">Select an endpoint to execute request...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 5: OWASP Attack Playground -->
+    <div id="owasp-tab" class="tab-content">
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-title">⚡ OWASP API Security Top 5 Attack Simulator</div>
+            <p style="font-size:0.85rem; color:var(--text-secondary);">
+                Demonstrate how each OWASP API Security vulnerability is tested and blocked by our security architecture. Click any attack button below to simulate an active exploit attempt against the local backend.
+            </p>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <!-- Attack 1: BOLA -->
+                <div class="attack-card">
+                    <div class="attack-header">
+                        <span class="attack-tag">API1: BOLA / IDOR</span>
+                        <button class="btn btn-danger btn-sm" onclick="runBolaAttack()">Launch Attack 💥</button>
+                    </div>
+                    <div style="font-weight:600; color:#fff; font-size:0.95rem;">Cross-Customer Account Tampering</div>
+                    <div class="attack-desc">
+                        Alice's token attempts to query Bob's private checking account (<code>acc_bob_chk_01</code>). The server verifies that Alice does not own or have active consent for Bob's account and returns safe 404/403.
+                    </div>
+                </div>
+
+                <!-- Attack 2: Broken Auth -->
+                <div class="attack-card">
+                    <div class="attack-header">
+                        <span class="attack-tag">API2: Broken Authentication</span>
+                        <button class="btn btn-danger btn-sm" onclick="runTamperedJwtAttack()">Launch Attack 💥</button>
+                    </div>
+                    <div style="font-weight:600; color:#fff; font-size:0.95rem;">Tampered RS256 JWT Signature</div>
+                    <div class="attack-desc">
+                        An adversary alters cryptographic signature bits in transit. The server validates RS256 using the local cached public key and instantly rejects the request with HTTP 401.
+                    </div>
+                </div>
+
+                <!-- Attack 3: Data Minimization -->
+                <div class="attack-card">
+                    <div class="attack-header">
+                        <span class="attack-tag">API3: Excessive Data Exposure</span>
+                        <button class="btn btn-warning btn-sm" onclick="runDataMinimizationCheck()">Verify Minimization 🔍</button>
+                    </div>
+                    <div style="font-weight:600; color:#fff; font-size:0.95rem;">Internal Banking Property Filtering</div>
+                    <div class="attack-desc">
+                        Validates that internal bank routing codes (<code>internal_routing_code</code>) and core ledger references (<code>internal_ledger_ref</code>) are never leaked in API response payloads.
+                    </div>
+                </div>
+
+                <!-- Attack 4: Rate Limiting -->
+                <div class="attack-card">
+                    <div class="attack-header">
+                        <span class="attack-tag">API4: Unrestricted Consumption</span>
+                        <button class="btn btn-danger btn-sm" onclick="runRateLimitAttack()">Launch Attack 💥</button>
+                    </div>
+                    <div style="font-weight:600; color:#fff; font-size:0.95rem;">Partner Rate Limit Burst (DoS)</div>
+                    <div class="attack-desc">
+                        Sends a rapid burst of requests. The sliding window rate limiter detects threshold exhaustion, returns HTTP 429 Too Many Requests, and sets <code>Retry-After</code> headers.
+                    </div>
+                </div>
+
+                <!-- Attack 5: BFLA -->
+                <div class="attack-card">
+                    <div class="attack-header">
+                        <span class="attack-tag">API5: Function Level Auth</span>
+                        <button class="btn btn-danger btn-sm" onclick="runBflaAttack()">Launch Attack 💥</button>
+                    </div>
+                    <div style="font-weight:600; color:#fff; font-size:0.95rem;">Privilege Escalation on Payments API</div>
+                    <div class="attack-desc">
+                        Attempts to initiate a financial transfer using an access token that only has read-only scopes. The server enforces RBAC and blocks the execution with HTTP 403 Forbidden.
+                    </div>
+                </div>
+
+                <!-- Attack 6: Replay / DPoP -->
+                <div class="attack-card">
+                    <div class="attack-header">
+                        <span class="attack-tag">Replay Defense: DPoP Cache</span>
+                        <button class="btn btn-danger btn-sm" onclick="runReplayAttack()">Launch Attack 💥</button>
+                    </div>
+                    <div style="font-weight:600; color:#fff; font-size:0.95rem;">Proof-of-Possession Token Replay</div>
+                    <div class="attack-desc">
+                        An intercepted DPoP proof header is replayed a second time. The anti-replay sliding cache detects duplicate proof JTI and blocks the second request with HTTP 401 Replay Detected!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Attack Console Output -->
+            <div class="card" style="display:flex; flex-direction:column;">
+                <div class="card-title">🖥️ Attack Execution Console</div>
+                <div id="attackOutput" class="code-block" style="flex:1; min-height:480px;">
+Click any attack above to observe real-time defense execution and security assertions.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 6: Security Audit Logs -->
+    <div id="audit-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📜 Real-Time Security Audit Log Stream</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <select id="auditFilterSelect" onchange="refreshAuditLogs()" style="width:200px;">
+                        <option value="">All Security Events</option>
+                        <option value="BOLA_VIOLATION_BLOCKED">BOLA Violations Blocked</option>
+                        <option value="REPLAY_ATTACK_BLOCKED">Replay Attacks Blocked</option>
+                        <option value="AUTH_FAILURE">Authentication Failures</option>
+                        <option value="CONSENT_GRANTED">Consent Granted</option>
+                        <option value="TOKEN_ISSUED">Tokens Issued</option>
+                        <option value="SENSITIVE_API_ACCESS">Sensitive API Access</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="refreshAuditLogs()">Refresh Now 🔄</button>
+                </div>
+            </div>
+
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">
+                SECURITY GUARANTEE: In accordance with PCI-DSS and Open Banking standards, all secrets (passwords, raw API keys, bearer tokens, full account numbers) are strictly redacted before persistence.
+            </p>
+
+            <div class="audit-table-wrapper">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Event Type</th>
+                            <th>Status</th>
+                            <th>Endpoint</th>
+                            <th>Actor / Client</th>
+                            <th>Sanitized Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditLogTableBody">
+                        <tr><td colspan="6" style="text-align:center; color:#6b7280; padding:24px;">Loading security audit logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/oauth.js"></script>
+<script src="/static/js/audit.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
